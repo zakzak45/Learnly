@@ -1,0 +1,21 @@
+# Node
+node_modules/
+npm-debug.log*
+
+# Build outputs
+build/
+dist/
+
+# Env files
+.env
+.env.local
+
+# IDE
+.vscode/
+.idea/
+
+# Java
+apps/backend-java/target/
+
+# OS
+.DS_Store

@@ -1,0 +1,20 @@
+{
+  "name": "learnly-monorepo",
+  "private": true,
+  "version": "1.0.0",
+  "workspaces": [
+    "apps/*"
+  ],
+  "scripts": {
+    "dev:frontend": "npm --workspace apps/frontend run dev",
+    "dev:node": "npm --workspace apps/backend-node run dev",
+    "dev": "concurrently -n FRONTEND,SPRING -c cyan,green \"npm run dev:frontend\" \"npm run dev:spring\"",
+    "dev:node-stack": "concurrently -n FRONTEND,NODE -c cyan,yellow \"npm run dev:frontend\" \"npm run dev:node\"",
+    "dev:spring": "cd apps/backend-java && mvn spring-boot:run",
+    "build:frontend": "npm --workspace apps/frontend run build",
+    "start:node": "npm --workspace apps/backend-node run start"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1"
+  }
+}
