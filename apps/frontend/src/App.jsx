@@ -38,6 +38,11 @@ const fallbackCareerTiles = [
     demand: "Strong demand in digital product teams",
     firstStep: "Practice user research, wireframing, and accessibility design.",
   },
+   {
+    career: "Digital Entrepreneur",
+    demand: "Strong demand in digital space",
+    firstStep: "Learn digital skills, like content creation, digital marketing  & market research.",
+  },
 ];
 
 const fallbackOpportunityItems = [
