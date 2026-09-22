@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Learnly — Backend Test Console</title>
+<style>
+  :root {
+    --bg: #0f1115;
+    --panel: #171a21;
+    --panel-2: #1e222b;
+    --border: #2a2f3a;
+    --text: #e7e9ee;
+    --muted: #8b93a3;
+    --accent: #4f8cff;
+    --accent-2: #6fd3a3;
+    --danger: #ff6b6b;
+    --warn: #e6b95c;
+    --radius: 8px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+  }
+  header {
+    padding: 20px 28px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  header h1 {
+    font-size: 18px;
+    margin: 0;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+  header h1 span { color: var(--muted); font-weight: 400; }
+  .session-bar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 13px;
+    color: var(--muted);
+  }
+  .session-bar .who { color: var(--text); }
+  .session-bar .role-tag {
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: 11px;
+    border: 1px solid var(--border);
+  }
+  .role-ADMIN { color: var(--warn); border-color: var(--warn); }
+  .role-STUDENT { color: var(--accent-2); border-color: var(--accent-2); }
+  button.linklike {
+    background: none; border: none; color: var(--muted); cursor: pointer;
+    text-decoration: underline; font-size: 13px; padding: 0;
+  }
+
+  .config-bar {
+    padding: 10px 28px;
+    background: var(--panel-2);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 13px;
+    color: var(--muted);
+  }
+  .config-bar input {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 5px 8px;
+    border-radius: 6px;
+    font-size: 13px;
+    width: 220px;
+  }
+
+  nav {
+    display: flex;
+    gap: 4px;
+    padding: 0 28px;
+    border-bottom: 1px solid var(--border);
+    overflow-x: auto;
+  }
+  nav button {
+    background: none;
+    border: none;
+    color: var(--muted);
+    padding: 12px 14px;
+    font-size: 13px;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    white-space: nowrap;
+  }
+  nav button.active {
+    color: var(--text);
+    border-bottom-color: var(--accent);
+  }
+
+  main {
+    padding: 24px 28px 60px;
+    max-width: 900px;
+    margin: 0 auto;
+  }
+  .view { display: none; }
+  .view.active { display: block; }
+
+  .panel {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 18px;
+    margin-bottom: 16px;
+  }
+  .panel h2 {
+    font-size: 14px;
+    margin: 0 0 14px;
+    color: var(--muted);
+    font-weight: 500;
+    text-transform: none;
+  }
+  .row { display: flex; gap: 10px; flex-wrap: wrap; }
+  .field { display: flex; flex-direction: column; gap: 4px; flex: 1; min-width: 160px; }
+  label { font-size: 12px; color: var(--muted); }
+  input, textarea {
+    background: var(--panel-2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 8px 10px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-family: inherit;
+  }
+  textarea { resize: vertical; min-height: 60px; }
+  button.btn {
+    background: var(--accent);
+    color: white;
+    border: none;
+    padding: 9px 16px;
+    border-radius: 6px;
+    font-size: 13px;
+    cursor: pointer;
+    font-weight: 500;
+    margin-top: 10px;
+  }
+  button.btn:hover { opacity: 0.9; }
+  button.btn.secondary { background: var(--panel-2); border: 1px solid var(--border); color: var(--text); }
+  button.btn.danger { background: var(--danger); }
+  button.btn.small { padding: 5px 10px; font-size: 12px; margin-top: 0; }
+  button.btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  .status {
+    margin-top: 10px;
+    font-size: 13px;
+    padding: 8px 10px;
+    border-radius: 6px;
+    display: none;
+    white-space: pre-wrap;
+    font-family: ui-monospace, monospace;
+  }
+  .status.ok { display: block; background: rgba(111, 211, 163, 0.1); color: var(--accent-2); border: 1px solid rgba(111,211,163,0.3); }
+  .status.err { display: block; background: rgba(255, 107, 107, 0.1); color: var(--danger); border: 1px solid rgba(255,107,107,0.3); }
+
+  .course-card {
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px;
+    margin-bottom: 10px;
+    cursor: pointer;
+    background: var(--panel-2);
+  }
+  .course-card:hover { border-color: var(--accent); }
+  .course-card h3 { margin: 0 0 4px; font-size: 15px; }
+  .course-card p { margin: 0; font-size: 13px; color: var(--muted); }
+  .badge {
+    display: inline-block;
+    font-size: 11px;
+    padding: 2px 7px;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    margin-top: 6px;
+  }
+
+  .stage {
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 12px;
+    margin-bottom: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+  }
+  .stage.locked { opacity: 0.45; }
+  .stage-info { flex: 1; }
+  .stage-info h4 { margin: 0 0 3px; font-size: 14px; }
+  .stage-info p { margin: 0 0 4px; font-size: 12px; color: var(--muted); }
+  .stage-info a { color: var(--accent); font-size: 12px; }
+  .stage-status {
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    white-space: nowrap;
+  }
+  .stage-status.VERIFIED { color: var(--accent-2); border-color: var(--accent-2); }
+  .stage-status.SELF_REPORTED { color: var(--muted); }
+  .stage-status.PENDING_REVIEW { color: var(--warn); border-color: var(--warn); }
+  .stage-status.REJECTED { color: var(--danger); border-color: var(--danger); }
+
+  .score-ring {
+    font-size: 42px;
+    font-weight: 600;
+    color: var(--accent);
+  }
+  .review-item {
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 12px;
+    margin-bottom: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .review-item .meta { font-size: 13px; }
+  .review-item .meta .sub { font-size: 12px; color: var(--muted); }
+  .btn-group { display: flex; gap: 6px; }
+
+  .empty { color: var(--muted); font-size: 13px; padding: 20px; text-align: center; }
+  .back-link { font-size: 13px; color: var(--muted); cursor: pointer; margin-bottom: 12px; display: inline-block; }
+  .back-link:hover { color: var(--text); }
+  code { background: var(--panel-2); padding: 1px 5px; border-radius: 4px; font-size: 12px; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Learnly <span>— backend test console</span></h1>
+  <div class="session-bar" id="sessionBar">Not logged in</div>
+</header>
+
+<div class="config-bar">
+  API base URL:
+  <input id="apiBase" value="http://localhost:8080" />
+  <button class="linklike" onclick="saveApiBase()">save</button>
+</div>
+
+<nav id="nav">
+  <button data-view="auth" class="active">Auth</button>
+  <button data-view="courses">Courses</button>
+  <button data-view="employability">Employability</button>
+  <button data-view="admin">Admin Review</button>
+</nav>
+
+<main>
+
+  <!-- AUTH VIEW -->
+  <section class="view active" id="view-auth">
+    <div class="panel">
+      <h2>Register</h2>
+      <div class="row">
+        <div class="field"><label>Email</label><input id="regEmail" placeholder="you@student.co.za" /></div>
+        <div class="field"><label>Password</label><input id="regPassword" type="password" placeholder="min 8 chars" /></div>
+      </div>
+      <div class="row">
+        <div class="field"><label>First name</label><input id="regFirstName" /></div>
+        <div class="field"><label>Last name</label><input id="regLastName" /></div>
+      </div>
+      <button class="btn" onclick="register()">Register</button>
+      <div class="status" id="regStatus"></div>
+    </div>
+
+    <div class="panel">
+      <h2>Login</h2>
+      <div class="row">
+        <div class="field"><label>Email</label><input id="loginEmail" placeholder="you@student.co.za" /></div>
+        <div class="field"><label>Password</label><input id="loginPassword" type="password" /></div>
+      </div>
+      <div class="row">
+        <button class="btn" onclick="login()">Login</button>
+        <button class="btn secondary" onclick="fillAdmin()">Fill admin credentials</button>
+        <button class="btn secondary" onclick="logout()">Log out</button>
+      </div>
+      <div class="status" id="loginStatus"></div>
+    </div>
+
+    <div class="panel">
+      <h2>Profile</h2>
+      <button class="btn secondary" onclick="loadProfile()">GET /api/profile</button>
+      <div class="status" id="profileStatus"></div>
+    </div>
+  </section>
+
+  <!-- COURSES VIEW -->
+  <section class="view" id="view-courses">
+    <div id="courseListPanel" class="panel">
+      <h2>Published courses</h2>
+      <button class="btn secondary" onclick="loadCourses()">Refresh list</button>
+      <div id="courseList" style="margin-top:12px;"></div>
+    </div>
+
+    <div id="courseDetailPanel" class="panel" style="display:none;">
+      <span class="back-link" onclick="showCourseList()">&larr; back to courses</span>
+      <h2 id="courseDetailTitle" style="color:var(--text); font-size:17px;"></h2>
+      <p id="courseDetailDesc" style="color:var(--muted); font-size:13px; margin-top:-8px;"></p>
+      <button class="btn" id="enrollBtn" onclick="enroll()">Enroll</button>
+      <div class="status" id="enrollStatus"></div>
+      <div id="stageList" style="margin-top:16px;"></div>
+    </div>
+  </section>
+
+  <!-- EMPLOYABILITY VIEW -->
+  <section class="view" id="view-employability">
+    <div class="panel">
+      <h2>Readiness score (logged-in user)</h2>
+      <button class="btn secondary" onclick="loadEmployability()">GET /api/employability</button>
+      <div id="employabilityResult" style="margin-top:14px;"></div>
+      <div class="status" id="employabilityStatus"></div>
+    </div>
+  </section>
+
+  <!-- ADMIN VIEW -->
+  <section class="view" id="view-admin">
+    <div class="panel">
+      <h2>Pending spot-check reviews (requires ADMIN login)</h2>
+      <button class="btn secondary" onclick="loadReviews()">GET /api/admin/reviews</button>
+      <div id="reviewList" style="margin-top:12px;"></div>
+      <div class="status" id="reviewStatus"></div>
+    </div>
+  </section>
+
+</main>
+
+<script>
+  // ---------- state ----------
+  let apiBase = localStorage.getItem('learnly_api_base') || 'http://localhost:8080';
+  let token = localStorage.getItem('learnly_token') || null;
+  let currentUser = JSON.parse(localStorage.getItem('learnly_user') || 'null');
+  let currentCourse = null;
+  let currentProgress = null;
+
+  document.getElementById('apiBase').value = apiBase;
+
+  function saveApiBase() {
+    apiBase = document.getElementById('apiBase').value.trim().replace(/\/$/, '');
+    localStorage.setItem('learnly_api_base', apiBase);
+  }
+
+  // ---------- nav ----------
+  document.getElementById('nav').addEventListener('click', (e) => {
+    const btn = e.target.closest('button[data-view]');
+    if (!btn) return;
+    document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+    document.getElementById('view-' + btn.dataset.view).classList.add('active');
+  });
+
+  // ---------- core fetch helper ----------
+  async function api(method, path, body, auth = true) {
+    const headers = { 'Content-Type': 'application/json' };
+    if (auth && token) headers['Authorization'] = 'Bearer ' + token;
+
+    const res = await fetch(apiBase + path, {
+      method,
+      headers,
+      body: body ? JSON.stringify(body) : undefined
+    });
+
+    let data = null;
+    try { data = await res.json(); } catch (e) { /* empty body, fine */ }
+
+    if (!res.ok) {
+      const msg = (data && data.error) ? data.error : `HTTP ${res.status}`;
+      throw new Error(msg);
+    }
+    return data;
+  }
+
+  function showStatus(id, ok, message) {
+    const el = document.getElementById(id);
+    el.className = 'status ' + (ok ? 'ok' : 'err');
+    el.textContent = typeof message === 'string' ? message : JSON.stringify(message, null, 2);
+  }
+
+  // ---------- session bar ----------
+  function renderSessionBar() {
+    const bar = document.getElementById('sessionBar');
+    if (currentUser) {
+      bar.innerHTML = `<span class="who">${currentUser.email}</span> <span class="role-tag role-${currentUser.role}">${currentUser.role}</span> <button class="linklike" onclick="logout()">log out</button>`;
+    } else {
+      bar.textContent = 'Not logged in';
+    }
+  }
+  renderSessionBar();
+
+  function setSession(authResponse) {
+    token = authResponse.token;
+    currentUser = { email: authResponse.email, firstName: authResponse.firstName, role: authResponse.role };
+    localStorage.setItem('learnly_token', token);
+    localStorage.setItem('learnly_user', JSON.stringify(currentUser));
+    renderSessionBar();
+  }
+
+  function logout() {
+    token = null;
+    currentUser = null;
+    localStorage.removeItem('learnly_token');
+    localStorage.removeItem('learnly_user');
+    renderSessionBar();
+  }
+
+  function fillAdmin() {
+    document.getElementById('loginEmail').value = 'admin@learnly.co.za';
+    document.getElementById('loginPassword').value = 'ChangeMe123!';
+  }
+
+  // ---------- AUTH ----------
+  async function register() {
+    try {
+      const body = {
+        email: document.getElementById('regEmail').value,
+        password: document.getElementById('regPassword').value,
+        firstName: document.getElementById('regFirstName').value,
+        lastName: document.getElementById('regLastName').value
+      };
+      const data = await api('POST', '/api/auth/register', body, false);
+      setSession(data);
+      showStatus('regStatus', true, 'Registered and logged in as ' + data.email);
+    } catch (e) {
+      showStatus('regStatus', false, e.message);
+    }
+  }
+
+  async function login() {
+    try {
+      const body = {
+        email: document.getElementById('loginEmail').value,
+        password: document.getElementById('loginPassword').value
+      };
+      const data = await api('POST', '/api/auth/login', body, false);
+      setSession(data);
+      showStatus('loginStatus', true, 'Logged in as ' + data.email + ' (' + data.role + ')');
+    } catch (e) {
+      showStatus('loginStatus', false, e.message);
+    }
+  }
+
+  async function loadProfile() {
+    try {
+      const data = await api('GET', '/api/profile');
+      showStatus('profileStatus', true, data);
+    } catch (e) {
+      showStatus('profileStatus', false, e.message);
+    }
+  }
+
+  // ---------- COURSES ----------
+  async function loadCourses() {
+    const listEl = document.getElementById('courseList');
+    listEl.innerHTML = '<div class="empty">Loading…</div>';
+    try {
+      const courses = await api('GET', '/api/courses', null, false);
+      if (!courses.length) {
+        listEl.innerHTML = '<div class="empty">No published courses yet — check DataSeeder ran, or that courses are marked published.</div>';
+        return;
+      }
+      listEl.innerHTML = '';
+      courses.forEach(c => {
+        const card = document.createElement('div');
+        card.className = 'course-card';
+        card.innerHTML = `<h3>${escapeHtml(c.title)}</h3><p>${escapeHtml(c.description)}</p><span class="badge">${c.modules ? c.modules.length : 0} stages</span>`;
+        card.onclick = () => openCourse(c.id);
+        listEl.appendChild(card);
+      });
+    } catch (e) {
+      listEl.innerHTML = '';
+      showStatus('enrollStatus', false, e.message);
+    }
+  }
+
+  async function openCourse(id) {
+    try {
+      currentCourse = await api('GET', '/api/courses/' + id, null, false);
+      document.getElementById('courseListPanel').style.display = 'none';
+      document.getElementById('courseDetailPanel').style.display = 'block';
+      document.getElementById('courseDetailTitle').textContent = currentCourse.title;
+      document.getElementById('courseDetailDesc').textContent = currentCourse.description;
+      document.getElementById('enrollStatus').className = 'status';
+      await refreshProgress();
+      renderStages();
+    } catch (e) {
+      showStatus('enrollStatus', false, e.message);
+    }
+  }
+
+  function showCourseList() {
+    document.getElementById('courseDetailPanel').style.display = 'none';
+    document.getElementById('courseListPanel').style.display = 'block';
+  }
+
+  async function refreshProgress() {
+    if (!token) { currentProgress = null; return; }
+    try {
+      currentProgress = await api('GET', `/api/courses/${currentCourse.id}/progress`);
+    } catch (e) {
+      // not enrolled yet, or /progress endpoint not added — fall back gracefully
+      currentProgress = null;
+    }
+  }
+
+  async function enroll() {
+    if (!token) { showStatus('enrollStatus', false, 'Log in first (Auth tab).'); return; }
+    try {
+      await api('POST', `/api/courses/${currentCourse.id}/enroll`);
+      showStatus('enrollStatus', true, 'Enrolled.');
+      await refreshProgress();
+      renderStages();
+    } catch (e) {
+      showStatus('enrollStatus', false, e.message);
+    }
+  }
+
+  function renderStages() {
+    const el = document.getElementById('stageList');
+    el.innerHTML = '';
+    if (!currentCourse.modules || !currentCourse.modules.length) {
+      el.innerHTML = '<div class="empty">This course has no stages defined yet.</div>';
+      return;
+    }
+
+    const completions = currentProgress ? currentProgress.completions : [];
+    const unlockedUpTo = currentProgress ? currentProgress.unlockedUpToIndex : 0;
+
+    currentCourse.modules.forEach((m, idx) => {
+      const completion = completions.find(c => c.moduleIndex === idx);
+      const locked = !completion && idx > unlockedUpTo;
+
+      const row = document.createElement('div');
+      row.className = 'stage' + (locked ? ' locked' : '');
+      row.innerHTML = `
+        <div class="stage-info">
+          <h4>Stage ${idx + 1}: ${escapeHtml(m.title)}</h4>
+          <p>${escapeHtml(m.description || '')} ${m.provider ? '· ' + escapeHtml(m.provider) : ''}</p>
+          ${m.resourceUrl ? `<a href="${m.resourceUrl}" target="_blank" rel="noopener">Open resource &rarr;</a>` : ''}
+        </div>
+      `;
+
+      const right = document.createElement('div');
+      if (completion) {
+        const badge = document.createElement('span');
+        badge.className = 'stage-status ' + completion.status;
+        badge.textContent = completion.status.replace('_', ' ');
+        right.appendChild(badge);
+      } else if (locked) {
+        const badge = document.createElement('span');
+        badge.className = 'stage-status';
+        badge.textContent = 'locked';
+        right.appendChild(badge);
+      } else {
+        const btn = document.createElement('button');
+        btn.className = 'btn small';
+        btn.textContent = 'Mark complete';
+        btn.onclick = () => completeStage(idx);
+        right.appendChild(btn);
+      }
+      row.appendChild(right);
+      el.appendChild(row);
+    });
+  }
+
+  async function completeStage(idx) {
+    if (!token) { showStatus('enrollStatus', false, 'Log in first (Auth tab).'); return; }
+    try {
+      await api('PUT', `/api/courses/${currentCourse.id}/modules/${idx}/complete`);
+      showStatus('enrollStatus', true, 'Stage ' + (idx + 1) + ' marked complete.');
+      await refreshProgress();
+      renderStages();
+    } catch (e) {
+      showStatus('enrollStatus', false, e.message);
+    }
+  }
+
+  // ---------- EMPLOYABILITY ----------
+  async function loadEmployability() {
+    const el = document.getElementById('employabilityResult');
+    try {
+      const data = await api('GET', '/api/employability');
+      el.innerHTML = `
+        <div class="score-ring">${data.score}<span style="font-size:16px;color:var(--muted);">/100</span></div>
+        <p style="color:var(--muted); font-size:13px; margin-top:8px;">${escapeHtml(data.message)}</p>
+        <p style="font-size:13px;">Courses enrolled: ${data.coursesEnrolled} · Modules completed: ${data.modulesCompleted}/${data.totalModules}</p>
+      `;
+      document.getElementById('employabilityStatus').className = 'status';
+    } catch (e) {
+      el.innerHTML = '';
+      showStatus('employabilityStatus', false, e.message);
+    }
+  }
+
+  // ---------- ADMIN REVIEW ----------
+  async function loadReviews() {
+    const el = document.getElementById('reviewList');
+    el.innerHTML = '<div class="empty">Loading…</div>';
+    try {
+      const reviews = await api('GET', '/api/admin/reviews');
+      if (!reviews.length) {
+        el.innerHTML = '<div class="empty">No completions currently flagged for review.</div>';
+        return;
+      }
+      el.innerHTML = '';
+      reviews.forEach(r => {
+        const row = document.createElement('div');
+        row.className = 'review-item';
+        row.innerHTML = `
+          <div class="meta">
+            <div>${escapeHtml(r.studentEmail)} &middot; ${escapeHtml(r.courseTitle)}</div>
+            <div class="sub">Stage ${r.moduleIndex + 1}: ${escapeHtml(r.moduleTitle)}</div>
+          </div>
+        `;
+        const btns = document.createElement('div');
+        btns.className = 'btn-group';
+        const verifyBtn = document.createElement('button');
+        verifyBtn.className = 'btn small';
+        verifyBtn.textContent = 'Verify';
+        verifyBtn.onclick = () => decide(r.enrollmentId, r.moduleIndex, 'verify');
+        const rejectBtn = document.createElement('button');
+        rejectBtn.className = 'btn small danger';
+        rejectBtn.textContent = 'Reject';
+        rejectBtn.onclick = () => decide(r.enrollmentId, r.moduleIndex, 'reject');
+        btns.appendChild(verifyBtn);
+        btns.appendChild(rejectBtn);
+        row.appendChild(btns);
+        el.appendChild(row);
+      });
+      document.getElementById('reviewStatus').className = 'status';
+    } catch (e) {
+      el.innerHTML = '';
+      showStatus('reviewStatus', false, e.message);
+    }
+  }
+
+  async function decide(enrollmentId, moduleIndex, action) {
+    try {
+      await api('PUT', `/api/admin/reviews/${enrollmentId}/modules/${moduleIndex}/${action}`);
+      showStatus('reviewStatus', true, 'Done.');
+      loadReviews();
+    } catch (e) {
+      showStatus('reviewStatus', false, e.message);
+    }
+  }
+
+  // ---------- utils ----------
+  function escapeHtml(str) {
+    if (str == null) return '';
+    return String(str).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+
+  // initial load
+  loadCourses();
+</script>
+
+</body>
+</html>

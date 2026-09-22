@@ -18,8 +18,8 @@ public class LearnlyDataService {
     private final OpportunityRepository opportunityRepository;
 
     public LearnlyDataService(LearningTrackRepository trackRepository,
-                              CareerPathRepository careerRepository,
-                              OpportunityRepository opportunityRepository) {
+                               CareerPathRepository careerRepository,
+                               OpportunityRepository opportunityRepository) {
         this.trackRepository = trackRepository;
         this.careerRepository = careerRepository;
         this.opportunityRepository = opportunityRepository;

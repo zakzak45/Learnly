@@ -25,13 +25,13 @@ public class LearningTrack {
     }
 
     public String getId() { return id; }
-    public String getTrackKey() { return trackKey; }
-    public String getTitle() { return title; }
-    public String getAudience() { return audience; }
-    public List<String> getOutcomes() { return outcomes; }
     public void setId(String id) { this.id = id; }
+    public String getTrackKey() { return trackKey; }
     public void setTrackKey(String trackKey) { this.trackKey = trackKey; }
+    public String getTitle() { return title; }
     public void setTitle(String title) { this.title = title; }
+    public String getAudience() { return audience; }
     public void setAudience(String audience) { this.audience = audience; }
+    public List<String> getOutcomes() { return outcomes; }
     public void setOutcomes(List<String> outcomes) { this.outcomes = outcomes; }
 }

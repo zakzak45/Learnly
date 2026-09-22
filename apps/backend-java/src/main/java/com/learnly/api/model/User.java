@@ -3,7 +3,7 @@ package com.learnly.api.model;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
-@Document(collection = "students")
+@Document(collection = "users")
 public class User {
 
     @Id
@@ -16,12 +16,11 @@ public class User {
 
     public User() {}
 
-    //public User(String id, String email, String password, String firstName, String lastName, Role role)
-    public User(String email, String password, String firstName, String lastName, Role role){
+    public User(String email, String password, String firstName, String lastName, Role role) {
         this.email = email;
         this.password = password;
         this.firstName = firstName;
-        this.lastName =lastName;
+        this.lastName = lastName;
         this.role = role;
     }
 
@@ -37,5 +36,4 @@ public class User {
     public void setLastName(String lastName) { this.lastName = lastName; }
     public Role getRole() { return role; }
     public void setRole(Role role) { this.role = role; }
-
 }
