@@ -1,6 +1,5 @@
 package com.learnly.api.service;
 
-
 import com.learnly.api.dto.AuthResponse;
 import com.learnly.api.dto.LoginRequest;
 import com.learnly.api.dto.RegisterRequest;
@@ -18,7 +17,7 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
 
-    public AuthService(UserRepository userRepository, PasswordEncoder passwordEncoder,JwtService jwtService) {
+    public AuthService(UserRepository userRepository, PasswordEncoder passwordEncoder, JwtService jwtService) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtService = jwtService;
@@ -26,9 +25,8 @@ public class AuthService {
 
     public AuthResponse register(RegisterRequest request) {
         if (userRepository.existsByEmail(request.email())) {
-            throw new IllegalArgumentException("An account with this email already exists");
+            throw new IllegalArgumentException("An account with that email already exists");
         }
-
 
         User user = new User(
                 request.email(),
@@ -36,24 +34,22 @@ public class AuthService {
                 request.firstName(),
                 request.lastName(),
                 Role.STUDENT
-
-
         );
         userRepository.save(user);
 
         String token = jwtService.generateToken(user.getEmail());
         return new AuthResponse(token, user.getEmail(), user.getFirstName(), user.getRole().name());
-
     }
+
     public AuthResponse login(LoginRequest request) {
-    User user = userRepository.findByEmail(request.email())
-            .orElseThrow(() -> new IllegalArgumentException("Invalid email or password"));
+        User user = userRepository.findByEmail(request.email())
+                .orElseThrow(() -> new IllegalArgumentException("Invalid email or password"));
 
-    if (!passwordEncoder.matches(request.password(), user.getPassword())) {
-        throw new IllegalArgumentException("Invalid email or password");
-    }
+        if (!passwordEncoder.matches(request.password(), user.getPassword())) {
+            throw new IllegalArgumentException("Invalid email or password");
+        }
 
-    String token = jwtService.generateToken(user.getEmail());
-    return new AuthResponse(token, user.getEmail(), user.getFirstName(), user.getRole().name());
+        String token = jwtService.generateToken(user.getEmail());
+        return new AuthResponse(token, user.getEmail(), user.getFirstName(), user.getRole().name());
     }
 }

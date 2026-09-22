@@ -1,8 +1,8 @@
 package com.learnly.api.dto;
 
-public record AuthResponse (
+public record AuthResponse(
         String token,
         String email,
         String firstName,
         String role
-){}
+) {}
