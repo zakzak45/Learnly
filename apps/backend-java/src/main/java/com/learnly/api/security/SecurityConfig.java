@@ -26,7 +26,7 @@ public class SecurityConfig {
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
     @Value("${spring.web.cors.allowed-origins}")
-    private String allowedOrigin;
+    private String allowedOrigins;
 
     // Dev/testing only: also allow a locally-opened HTML file (file:// origin,
     // sent as the literal string "null") to hit the API. Tighten this before
@@ -44,7 +44,11 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOriginPatterns(List.of(allowedOrigin, "null"));
+        // Accept a comma-separated list so Vite's 5173 and 5174 fallback ports both work.
+        List<String> originPatterns = new java.util.ArrayList<>(
+            List.of(allowedOrigins.split(",")));
+        originPatterns.add("null");
+        configuration.setAllowedOriginPatterns(originPatterns);
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);

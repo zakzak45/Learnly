@@ -1,0 +1,126 @@
+name: Learnly CI/CD
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: learnly-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  frontend:
+    name: Frontend quality gate
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/frontend
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Install workspace dependencies
+        working-directory: .
+        run: npm ci
+
+      - name: Lint frontend
+        run: npm run lint
+
+      - name: Build frontend
+        run: npm run build
+
+      - name: Upload frontend artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: learnly-frontend
+          path: apps/frontend/dist
+          if-no-files-found: error
+
+  node-api:
+    name: Node API quality gate
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Install workspace dependencies
+        run: npm ci
+
+      - name: Check Node API syntax
+        run: node --check apps/backend-node/src/server.js
+
+  backend-java:
+    name: Java API quality gate
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/backend-java
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Java 25
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "25"
+          cache: maven
+
+      - name: Compile and test API
+        run: mvn --batch-mode --update-snapshots clean verify -Djacoco.skip=false
+
+      - name: Upload backend artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: learnly-backend-java
+          path: apps/backend-java/target/*.jar
+          if-no-files-found: error
+
+  release-artifact:
+    name: Package release artifact
+    # Pull requests validate only; main produces the deployable bundle.
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: [frontend, node-api, backend-java]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download frontend artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: learnly-frontend
+          path: release/frontend
+
+      - name: Download Java API artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: learnly-backend-java
+          path: release/backend-java
+
+      - name: Write release metadata
+        run: |
+          printf 'commit=%s\nrun=%s\n' "$GITHUB_SHA" "$GITHUB_RUN_ID" > release/build-info.txt
+
+      - name: Upload release bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: learnly-release-${{ github.sha }}
+          path: release
+          if-no-files-found: error
