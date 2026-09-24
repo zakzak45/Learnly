@@ -19,8 +19,9 @@ Learnly is a localized self-learning and career-readiness platform concept for S
 ### 0) Run Full Stack From Root
 
 ```bash
-cd /home/zayne/Learnly
+cd /home/zayne/Other/Learnly
 npm install
+docker compose -f compose.yml up -d mongodb
 npm run dev
 ```
 
@@ -28,6 +29,10 @@ This starts:
 
 - Frontend on `http://localhost:5173`
 - Spring Boot API on `http://localhost:8080`
+
+MongoDB is required by the Spring API because the startup seeder writes the
+default learning data. The compose service stores data in the named
+`learnly-mongo-data` volume.
 
 Alternative stack (frontend + Node API):
 
@@ -49,7 +54,7 @@ Frontend runs on `http://localhost:5173`.
 
 ```bash
 cd apps/backend-java
-mvn spring-boot:run
+mvn org.springframework.boot:spring-boot-maven-plugin:3.4.4:run
 ```
 
 Spring API runs on `http://localhost:8080`.
